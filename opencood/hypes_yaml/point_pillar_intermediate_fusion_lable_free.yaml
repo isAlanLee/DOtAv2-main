@@ -17,7 +17,7 @@ lable_free: True
 
 iterative_training: False
 
-pseudo_lable_path: '/mnt/32THHD/lwk/datas/OPV2V/out_xqm_score'
+pseudo_lable_path: '/root/autodl-tmp/opv2v/out_1'
 
 # preprocess-related
 preprocess:

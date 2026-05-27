@@ -25,3 +25,8 @@
 - 已将同一文件的 `validate_dir` 修改为 `/root/autodl-tmp/opv2v/train`，保持 label-free 初始训练使用 train 数据的原配置语义。
 - 已通过 `load_yaml` 验证配置可解析，且 `lable_free=True`、`iterative_training=False` 保持不变。
 - 已清理由验证产生的 `__pycache__` 缓存目录。
+
+## 2026-05-27 20:28:06 +08:00
+- 已将 `point_pillar_intermediate_fusion_lable_free.yaml` 的 `pseudo_lable_path` 修改为 `/root/autodl-tmp/opv2v/out_1`。
+- 已通过 `load_yaml` 验证 `pseudo_lable_path`、`root_dir`、`validate_dir` 均为预期值。
+- 已清理由验证产生的 `__pycache__` 缓存目录。

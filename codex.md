@@ -30,3 +30,15 @@
 - 已将 `point_pillar_intermediate_fusion_lable_free.yaml` 的 `pseudo_lable_path` 修改为 `/root/autodl-tmp/opv2v/out_1`。
 - 已通过 `load_yaml` 验证 `pseudo_lable_path`、`root_dir`、`validate_dir` 均为预期值。
 - 已清理由验证产生的 `__pycache__` 缓存目录。
+
+## 2026-05-28 13:35:24 +08:00
+- 开始根据服务器训练日志中的 PyTorch lr_scheduler warning 修改训练脚本。
+- 已定位 warning 来自 `opencood/tools/train.py` 中 epoch 开头调用 `scheduler.step(epoch)`。
+- 修改目标：标准 PyTorch scheduler 改为每个 epoch 训练结束后调用 `scheduler.step()`，避免先于 `optimizer.step()` 调用以及传入已废弃的 epoch 参数。
+
+## 2026-05-28 13:37:10 +08:00
+- 已修改 `opencood/tools/train.py`：移除 epoch 开头的 `scheduler.step(epoch)`。
+- 标准 PyTorch scheduler 现在在每个 epoch 的训练循环结束后调用 `scheduler.step()`。
+- `cosineannealwarm` 的 `scheduler.step_update` 保持在 batch 内 optimizer 更新之后，并改用 `epoch * num_steps + i + 1`。
+- 已通过 `python -m py_compile opencood/tools/train.py` 完成语法检查；本地环境未安装 `torch`，无法在本机复现 PyTorch warning 运行测试。
+- 已清理由语法检查产生的 `opencood/tools/__pycache__` 缓存目录。

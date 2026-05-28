@@ -125,10 +125,6 @@ def main():
     # used to help schedule learning rate
 
     for epoch in range(init_epoch, max(epoches, init_epoch)):
-        if hypes['lr_scheduler']['core_method'] != 'cosineannealwarm':
-            scheduler.step(epoch)
-        if hypes['lr_scheduler']['core_method'] == 'cosineannealwarm':
-            scheduler.step_update(epoch * num_steps + 0)
         for param_group in optimizer.param_groups:
             print('learning rate %.7f' % param_group["lr"])
 
@@ -176,7 +172,10 @@ def main():
                 scaler.update()
 
             if hypes['lr_scheduler']['core_method'] == 'cosineannealwarm':
-                scheduler.step_update(epoch * num_steps + i)
+                scheduler.step_update(epoch * num_steps + i + 1)
+
+        if hypes['lr_scheduler']['core_method'] != 'cosineannealwarm':
+            scheduler.step()
 
         if epoch % hypes['train_params']['save_freq'] == 0:
             torch.save(model_without_ddp.state_dict(),

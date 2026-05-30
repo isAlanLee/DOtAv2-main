@@ -14,6 +14,11 @@ import multiprocessing
 import math
 from scipy.spatial import ConvexHull
 
+DATA_ROOT = '/root/autodl-tmp/opv2v/train'
+PROJECT_ROOT = '/autodl-fs/data/DOtAv2-opv2v'
+PSEUDO_BOX_DIR = os.path.join(PROJECT_ROOT, 'pseduo_label_val', 'pre_box_test_full')
+MBE_OUTPUT_DIR = os.path.join(PROJECT_ROOT, 'pseduo_label_val', 'mbe_filter')
+
 
 def in_hull(p, hull):
     """
@@ -336,13 +341,14 @@ def load_yaml(file, opt=None):
 
 def return_pl_frome_single_scenario(count, node_timestamp_lsit):
   
-    path = '/mnt/32THHD/xhe/datasets/OPV2V/train'
+    path = DATA_ROOT
     scenario_folders = sorted([os.path.join(path, x)  
                                for x in os.listdir(path) if
                                os.path.isdir(os.path.join(path, x))])
+    scenario_folder = scenario_folders[count]
     cav_list = sorted([x for x in os.listdir(scenario_folders[count]) 
                        if os.path.isdir(
-            os.path.join(scenario_folders[count], x))])
+            os.path.join(scenario_folders[count], x)) and x.lstrip('-').isdigit()])
     for cav_id in cav_list:
         cav_path = os.path.join(scenario_folders[count], cav_id)
         yaml_files = \
@@ -351,7 +357,11 @@ def return_pl_frome_single_scenario(count, node_timestamp_lsit):
                     x.endswith('.yaml') and 'additional' not in x])
         break
 
-    
+    timestamps = []
+    for file in yaml_files:
+        res = file.split(os.path.sep)[-1]
+        timestamp = res.replace('.yaml', '')
+        timestamps.append(timestamp)
     
     cur_timestamps = node_timestamp_lsit[count] 
     node_timestamp= node_timestamp_lsit[count+1] 
@@ -393,7 +403,7 @@ def return_pl_frome_single_scenario(count, node_timestamp_lsit):
         
 
             
-        pseduo_labels = np.load(f'/mnt/32THHD/lwk/codes/OpenCOOD/pseduo_label_moma_1/pre_{num_timestamp}.npy')
+        pseduo_labels = np.load(os.path.join(PSEUDO_BOX_DIR, f'pre_{num_timestamp}.npy'))
        
         pseduo_labels_ = pseduo_labels.copy()
 
@@ -415,9 +425,10 @@ def return_pl_frome_single_scenario(count, node_timestamp_lsit):
 
         inverted_list = [not x for x in out_pseduo_labels]
 
-        np.save(f'/mnt/32THHD/lwk/datas/OPV2V/out_xqm_moma_1_plus_ONLY_DENSITY/out_pseduo_labels_v1_{num_timestamp}.npy',
+        os.makedirs(MBE_OUTPUT_DIR, exist_ok=True)
+        np.save(os.path.join(MBE_OUTPUT_DIR, f'out_pseduo_labels_v1_{num_timestamp}.npy'),
                 pseduo_labels_[out_pseduo_labels])
-        np.save(f'/mnt/32THHD/lwk/datas/OPV2V/out_xqm_moma_1_plus_ONLY_DENSITY/out_pseduo_labels_noise_v1_{num_timestamp}.npy',
+        np.save(os.path.join(MBE_OUTPUT_DIR, f'out_pseduo_labels_noise_v1_{num_timestamp}.npy'),
                 pseduo_labels_[inverted_list])
     
     return True
@@ -427,7 +438,7 @@ import itertools
 if __name__ == '__main__':
 
 
-    path = "/mnt/32THHD/xhe/datasets/OPV2V/train"
+    path = DATA_ROOT
 
     scenario_folders = sorted([os.path.join(path, x)  # 单个元素的例：.../OPV2V/train/2021_08_16_22_26_54，为一个场景
                                for x in os.listdir(path) if
@@ -437,7 +448,7 @@ if __name__ == '__main__':
     for scenario_folder in tqdm(scenario_folders):
         cav_list = sorted([x for x in os.listdir(scenario_folder)  # scenario_folder下每个文件夹都代表一辆车，如641，650，659；单个元素例：641
                            if os.path.isdir(
-                os.path.join(scenario_folder, x))])
+                os.path.join(scenario_folder, x)) and x.lstrip('-').isdigit()])
         for cav_id in cav_list:
             cav_path = os.path.join(scenario_folder, cav_id)
             yaml_files = \
@@ -462,7 +473,7 @@ if __name__ == '__main__':
         current_sum += node_timestamp_lsit[num]
         new_list.append(current_sum) 
 
-    sample_sequence_file_list = [i for i in range(43)]
+    sample_sequence_file_list = [i for i in range(len(scenario_folders))]
 
 
     process_single_sequence = partial(
